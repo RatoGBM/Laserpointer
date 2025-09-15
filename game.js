@@ -6,13 +6,9 @@
 
 'use strict';
 
-let mouse;
-let laser;
-let cat;
-let floor_texture;
-let game_over_texture;
-let circle_texture;
-let cheese;
+let mouse, cheese, laser, cat;
+let floor_texture, mouse_texture, game_over_texture, circle_texture, cat_texture, cheese_texture;
+
 let level;
 let level_i = 0;
 
@@ -70,18 +66,14 @@ function findIntersection(p1, p2, p3, p4) { // https://stackoverflow.com/a/51127
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
     // textures
-    let mouse_texture = new TileInfo(vec2(1, 0), vec2(62, 64));
-    let cat_texture = new TileInfo(vec2(64, 0), vec2(64, 64));
+    mouse_texture = new TileInfo(vec2(1, 0), vec2(62, 64));
+    cat_texture = new TileInfo(vec2(64, 0), vec2(64, 64));
     floor_texture = new TileInfo(vec2(128, 0), vec2(63, 63));
-    let cheese_texture = new TileInfo(vec2(0, 64), vec2(64, 64));
+    cheese_texture = new TileInfo(vec2(0, 64), vec2(64, 64));
     game_over_texture = new TileInfo(vec2(64 * 1, 64 * 1), vec2(64, 64));
     circle_texture = new TileInfo(vec2(64 * 2, 64 * 1), vec2(64, 64));
-    // characters
-    mouse = new Mouse(vec2(0, 0), Mouse.base_size, mouse_texture);
-    cat = new Cat(vec2(0, 0), Cat.base_size, cat_texture);
-    cheese = new Cheese(vec2(10, 10), cheese_texture);
-    laser = new Laser();
     Level.loadWallTextures();
+    // characters
     level = new Level(levels[level_i]);
     //
     game_state = "paused";
@@ -93,7 +85,9 @@ function gameUpdate() {
     if (game_state == "active") {
         mouse.velocity = keyDirection().scale(Mouse.speed);
         cat.updateCat(laser, mouse);
-    } else if (game_state == "paused") {}
+    } else if (game_state == "paused") {
+        stopAllMovement();
+    }
 }
 
 function changeGameState() {
@@ -112,7 +106,8 @@ function changeGameState() {
                 console.log("Game Paused");
             } else if (game_state == "caught") {
                 game_state = "active";
-                level.positionCharacters();
+                level.wipe();
+                level = new Level(levels[level_i]);
                 uncaughtHandler();
             }
             //
@@ -147,9 +142,9 @@ function gameRender() {
 }
 
 function drawFloorTiles() {
-    let floor_tile_size = 4;
-    for (let x = -10; x < 10; x += floor_tile_size) {
-        for (let y = -10; y < 10; y += floor_tile_size) {
+    let floor_tile_size = Level.scale * 2;
+    for (let x = level.sides.left; x < level.sides.right; x += floor_tile_size) {
+        for (let y = level.sides.bottom; y < level.sides.top; y += floor_tile_size) {
             drawTile(vec2(x, y), vec2(floor_tile_size), floor_texture);
         }
     }

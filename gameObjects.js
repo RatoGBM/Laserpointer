@@ -37,6 +37,7 @@ class Cat extends EngineObject {
 }
 
 class Wall extends EngineObject {
+    static walls = [];
     constructor(pos, size, texture) {
         super(pos, size, texture);
         this.setCollision();
@@ -46,7 +47,6 @@ class Wall extends EngineObject {
         this.sides = Wall._getSides(this.pos, this.size);
         this.corners = Wall._getCorners(this.sides);
     }
-    static walls = [];
     static _getSides(pos, size) {
         return {
             top: pos.y + size.y / 2,
@@ -63,6 +63,12 @@ class Wall extends EngineObject {
             bottomleft: vec2(sides.left, sides.bottom)
         }
     }
+    static _wipeWalls() {
+        Wall.walls.forEach((w) => {
+            w.destroy();
+        });
+        Wall.walls = [];
+    }
 }
 
 class Laser extends EngineObject {
@@ -70,6 +76,10 @@ class Laser extends EngineObject {
     constructor() {
         super(mouse.pos, vec2(0.3, 0.3));
         this.color = rgb(1, 0, 0)
+    }
+    wipe() {
+        Laser.laserSolids = [];
+        this.destroy();
     }
 }
 
@@ -80,8 +90,8 @@ class Cheese extends EngineObject {
     }
     collideWithObject(object) {
         if (object instanceof Mouse) {
-            alert("WIN!");
-            this.destroy()
+            level.goal_i++;
+            level.positionCheese();
         }
         return false;
     }

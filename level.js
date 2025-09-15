@@ -17,11 +17,14 @@ class Level {
         this.height = this.level.length;
         this.x_offset = Math.round(this.width / 2);
         this.y_offset = Math.round(this.height / 2);
+        this.sides = Wall._getSides(vec2(0, 0), vec2(this.width * Level.scale, this.height * Level.scale));
+        //
         this.goals = new Array(10);
+        this.goal_i = 0;
         this.cat_positions = [];
         this.mouse_position;
         this.generateWalls();
-        this.positionCharacters();
+        this.createCharacters();
     }
     getTile(x, y) {
         if (x >= this.width || y >= this.height || x < 0 || y < 0) {
@@ -62,15 +65,47 @@ class Level {
             }
         }
     }
-    positionCharacters() {
-        let pos = function(x, y) {
-            console.log(this.x_offset);
-            return vec2(x - this.x_offset, y - this.y_offset).scale(Level.scale);
-        };
-        cat.pos = pos(this.cat_positions[0][0], this.cat_positions[0][1]);
-        mouse.pos = pos(this.mouse_position[0], this.mouse_position[1]);
-        cheese.pos = pos(this.goals[0][0], this.goals[0][1]);
-        laser.pos = cheese.pos;
+    createCharacters() {
+        for (let c of this.cat_positions) {
+            cat = new Cat(this.cordinateConversion(c[0], c[1]), Cat.base_size, cat_texture);
+        }
+        mouse = new Mouse(this.cordinateConversion(this.mouse_position[0], this.mouse_position[1]), Mouse.base_size, mouse_texture);
+        cheese = new Cheese(vec2(0, 0), cheese_texture);
+        laser = new Laser();
+        this.positionCheese();
+    }
+    positionCheese() {
+        if (this.goals[this.goal_i] == undefined) {
+            this.nextLevel();
+        } else {
+            cheese.pos = this.cordinateConversion(this.goals[this.goal_i][0], this.goals[this.goal_i][1]);
+            laser.pos = cheese.pos;
+        }
+    }
+    cordinateConversion(x, y) {
+        return vec2(x - this.x_offset, y - this.y_offset).scale(Level.scale);
+    };
+    wipe() {
+        Wall._wipeWalls();
+        laser.wipe();
+        laser = null;
+        cat.destroy();
+        cat = null;
+        mouse.destroy();
+        mouse = null;
+        cheese.destroy();
+        cheese = null;
+    }
+    nextLevel() { // handles transition to next level
+        level_i++;
+        if (level_i >= levels.length) {
+            alert("End of Game");
+            return;
+        }
+        this.wipe();
+        game_state = "paused";
+        level = new Level(levels[level_i]);
+        console.log("Switched to Level", level_i);
     }
     static getTexture(level, x, y) {
         let index = 0;
@@ -108,7 +143,7 @@ const levels = [
     `
 WWWWWWWWW
 W++W++C+W
-W+++++++W
+W+1+++++W
 WM++WW++W
 W+++WW+0W
 WWWWWWWWW
