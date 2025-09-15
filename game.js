@@ -77,8 +77,8 @@ function gameInit() {
     game_over_texture = new TileInfo(vec2(64 * 1, 64 * 1), vec2(64, 64));
     circle_texture = new TileInfo(vec2(64 * 2, 64 * 1), vec2(64, 64));
     // characters
-    mouse = new Mouse(vec2(0, 0), vec2(1.5, 1.5), mouse_texture);
-    cat = new Cat(vec2(0, 0), vec2(1.9, 1.9), cat_texture);
+    mouse = new Mouse(vec2(0, 0), Mouse.base_size, mouse_texture);
+    cat = new Cat(vec2(0, 0), Cat.base_size, cat_texture);
     cheese = new Cheese(vec2(10, 10), cheese_texture);
     laser = new Laser();
     Level.loadWallTextures();
@@ -106,10 +106,14 @@ function changeGameState() {
             if (game_state == "paused") {
                 game_state = "active";
                 console.log("Game Active");
-            } else if (game_state = "active") {
+            } else if (game_state == "active") {
                 game_state = "paused";
                 stopAllMovement();
                 console.log("Game Paused");
+            } else if (game_state == "caught") {
+                game_state = "active";
+                level.positionCharacters();
+                uncaughtHandler();
             }
             //
         }
@@ -137,9 +141,9 @@ function gameRender() {
     if (game_state == "active") {
         let end = mouse.pos.add(mousePos.subtract(mouse.pos).normalize(20))
         let i = raycast(mouse.pos, end, Laser.laserSolids);
-        drawLine(mouse.pos, i, 0.1, rgb(1, 0, 0));
         laser.pos = i;
     }
+    drawLine(mouse.pos, laser.pos, 0.1, rgb(1, 0, 0));
 }
 
 function drawFloorTiles() {
@@ -159,7 +163,11 @@ function gameRenderPost() {
     if (game_state == "caught") {
         let p = mouse.pos.add(cat.pos).scale(0.5);
         drawTile(p, vec2(5, 5), game_over_texture);
-        drawTextScreen("Caught", mainCanvasSize.scale(.5), 100);
+        drawTextScreen("Caught", worldToScreen(vec2(0, -5)), 100);
+        drawTextScreen("Press Space to Restart", worldToScreen(vec2(0, -10)), 50);
+    }
+    if (game_state == "paused") {
+        drawTextScreen("Press Space to Start", mainCanvasSize.scale(.5), 100);
     }
 }
 

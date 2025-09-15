@@ -1,4 +1,5 @@
 class Mouse extends EngineObject {
+    static base_size = vec2(1.5, 1.5);
     constructor(pos, size, texture) {
         super(pos, size, texture);
         this.setCollision();
@@ -7,7 +8,7 @@ class Mouse extends EngineObject {
     collideWithObject(object) {
         if (object instanceof Cat) {
             game_state = "caught";
-            stopAllMovement();
+            caughtHandler();
         }
         if (object instanceof Wall) {
             this.velocity = vec2(0, 0);
@@ -17,6 +18,7 @@ class Mouse extends EngineObject {
 }
 
 class Cat extends EngineObject {
+    static base_size = vec2(1.9, 1.9);
     constructor(pos, size, texture) {
         super(pos, size, texture);
         this.setCollision();
